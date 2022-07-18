@@ -4,8 +4,9 @@ WORKDIR /go/src/github.com/zostay/ext-authz-keep-out
 COPY . .
 
 RUN go install ./
+RUN ls /go/bin
 
-FROM busybox AS app
+FROM busybox:latest AS app
 
 COPY --from=builder /go/bin/ext-authz-keep-out /usr/local/bin/ext-authz-keep-out
 
