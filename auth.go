@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"strings"
@@ -29,7 +30,7 @@ func (k *keepOut) unauthorizedResponse() *authv3.CheckResponse {
 				Headers: []*corev3.HeaderValueOption{
 					{
 						Header: &corev3.HeaderValue{
-							Key:   "WWW-Authentication",
+							Key:   "WWW-Authenticate",
 							Value: `Basic realm="` + k.realm + `"`,
 						},
 					},
@@ -73,14 +74,18 @@ func (k *keepOut) Check(
 		return k.unauthorizedResponse(), nil
 	}
 
-	var encodedAuth string
 	if !strings.HasPrefix(strings.ToLower(authHeader), "basic ") {
-		encodedAuth = strings.TrimSpace(authHeader[5:])
 		return k.unauthorizedResponse(), nil
 	}
 
+	encodedAuth := strings.TrimSpace(authHeader[5:])
+
 	auth, err := base64.StdEncoding.DecodeString(encodedAuth)
 	if err != nil {
+		return k.unauthorizedResponse(), nil
+	}
+
+	if !bytes.ContainsRune(auth, ':') {
 		return k.unauthorizedResponse(), nil
 	}
 

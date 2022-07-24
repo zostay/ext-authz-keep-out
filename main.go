@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func main() {
+func StartServer(port string, portChan chan int) {
 	ko := keepOut{
 		realm: "Mordac the Preventer",
 		user:  "test123",
@@ -19,12 +19,21 @@ func main() {
 
 	authv3.RegisterAuthorizationServer(grpcSrv, &ko)
 
-	listener, err := net.Listen("tcp", ":8080")
+	listener, err := net.Listen("tcp", port)
 	if err != nil {
 		panic(fmt.Sprintf("failed to start listener on :8080: %v", err))
 	}
 
-	fmt.Println("Starting GRPC server on :8080")
+	if portChan != nil {
+		portChan <- listener.Addr().(*net.TCPAddr).Port
+	}
+
+	actualPort := listener.Addr().String()
+	fmt.Printf("Starting GRPC server on %s\n", actualPort)
 
 	grpcSrv.Serve(listener)
+}
+
+func main() {
+	StartServer("0.0.0.0:8080", nil)
 }
