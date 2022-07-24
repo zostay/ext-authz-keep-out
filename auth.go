@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"fmt"
 	"strings"
 
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -21,7 +22,9 @@ type keepOut struct {
 
 func (k *keepOut) unauthorizedResponse() *authv3.CheckResponse {
 	return &authv3.CheckResponse{
-		Status: nil,
+		Status: &status.Status{
+			Code: int32(codes.OK),
+		},
 		HttpResponse: &authv3.CheckResponse_DeniedResponse{
 			DeniedResponse: &authv3.DeniedHttpResponse{
 				Status: &typev3.HttpStatus{
@@ -31,7 +34,7 @@ func (k *keepOut) unauthorizedResponse() *authv3.CheckResponse {
 					{
 						Header: &corev3.HeaderValue{
 							Key:   "WWW-Authenticate",
-							Value: `Basic realm="` + k.realm + `"`,
+							Value: fmt.Sprintf(`Basic realm=%q`, k.realm),
 						},
 					},
 				},

@@ -78,7 +78,7 @@ func TestGoodToken(t *testing.T) {
 	})
 
 	require.NoError(t, err, "check good token error")
-	assert.Equal(t, int32(codes.OK), resp.GetStatus().GetCode(), "passed authentication")
+	assert.Equal(t, int32(codes.OK), resp.GetStatus().GetCode(), "valid response")
 }
 
 func TestBadToken(t *testing.T) {
@@ -100,6 +100,7 @@ func TestBadToken(t *testing.T) {
 	})
 
 	require.NoError(t, err, "check good token error")
+	assert.Equal(t, int32(codes.OK), resp.GetStatus().GetCode(), "valid response")
 	assert.Equal(t, typev3.StatusCode_Unauthorized, resp.GetDeniedResponse().GetStatus().GetCode(), "failed authentication")
 
 	hdr := resp.GetDeniedResponse().GetHeaders()
