@@ -25,7 +25,7 @@ func (k *keepOut) unauthorizedResponse() *authv3.CheckResponse {
 	log.Print("deny")
 	return &authv3.CheckResponse{
 		Status: &status.Status{
-			Code: int32(codes.OK),
+			Code: int32(codes.PermissionDenied),
 		},
 		HttpResponse: &authv3.CheckResponse_DeniedResponse{
 			DeniedResponse: &authv3.DeniedHttpResponse{
@@ -75,6 +75,8 @@ func (k *keepOut) Check(
 	if headers == nil {
 		return k.unauthorizedResponse(), nil
 	}
+
+	log.Printf("headers %+v", headers["authorization"])
 
 	authHeader, ok := headers["authorization"]
 	if !ok {
