@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -9,12 +10,18 @@ import (
 	"google.golang.org/grpc"
 )
 
+var (
+	realm, user, pass string
+)
+
+func init() {
+	flag.StringVar(&realm, "realm", "Invitation Only", "set the name of the Basic realm to present")
+	flag.StringVar(&user, "user", "demo", "set the name of the user to accept")
+	flag.StringVar(&pass, "pass", "demo", "set the password of the user to accept")
+}
+
 func StartServer(port string, portChan chan int) {
-	ko := keepOut{
-		realm: "Mordac the Preventer",
-		user:  "test123",
-		pass:  "test321",
-	}
+	ko := keepOut{realm, user, pass}
 
 	grpcSrv := grpc.NewServer()
 
@@ -36,5 +43,6 @@ func StartServer(port string, portChan chan int) {
 }
 
 func main() {
+	flag.Parse()
 	StartServer("0.0.0.0:8080", nil)
 }
