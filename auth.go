@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"strings"
 
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -21,6 +22,7 @@ type keepOut struct {
 }
 
 func (k *keepOut) unauthorizedResponse() *authv3.CheckResponse {
+	log.Print("deny")
 	return &authv3.CheckResponse{
 		Status: &status.Status{
 			Code: int32(codes.OK),
@@ -48,6 +50,8 @@ func (k *keepOut) Check(
 	_ context.Context,
 	request *authv3.CheckRequest,
 ) (*authv3.CheckResponse, error) {
+	log.Print("new request")
+
 	if request == nil {
 		return k.unauthorizedResponse(), nil
 	}
@@ -102,6 +106,8 @@ func (k *keepOut) Check(
 	if pass != k.pass {
 		return k.unauthorizedResponse(), nil
 	}
+
+	log.Print("pass")
 
 	return &authv3.CheckResponse{
 		Status: &status.Status{

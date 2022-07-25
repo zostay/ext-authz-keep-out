@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"io"
+	"log"
 	"os"
 	"strings"
 	"testing"
@@ -18,6 +20,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	log.SetOutput(io.Discard)
 	startTestServer()
 	code := m.Run()
 	stopTestServer()

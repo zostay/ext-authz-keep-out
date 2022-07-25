@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
@@ -29,7 +30,7 @@ func StartServer(port string, portChan chan int) {
 	}
 
 	actualPort := listener.Addr().String()
-	fmt.Printf("Starting GRPC server on %s\n", actualPort)
+	log.Printf("Starting GRPC server on %s", actualPort)
 
 	grpcSrv.Serve(listener)
 }
