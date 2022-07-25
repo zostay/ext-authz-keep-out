@@ -22,7 +22,7 @@ type keepOut struct {
 }
 
 func (k *keepOut) unauthorizedResponse() *authv3.CheckResponse {
-	log.Print("deny")
+	// log.Print("deny")
 	return &authv3.CheckResponse{
 		Status: &status.Status{
 			Code: int32(codes.PermissionDenied),
@@ -76,7 +76,7 @@ func (k *keepOut) Check(
 		return k.unauthorizedResponse(), nil
 	}
 
-	log.Printf("headers %+v", headers["authorization"])
+	// log.Printf("headers %+v", headers["authorization"])
 
 	authHeader, ok := headers["authorization"]
 	if !ok {
@@ -109,7 +109,7 @@ func (k *keepOut) Check(
 		return k.unauthorizedResponse(), nil
 	}
 
-	log.Print("pass")
+	// log.Print("pass")
 
 	return &authv3.CheckResponse{
 		Status: &status.Status{
