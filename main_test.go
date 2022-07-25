@@ -34,18 +34,16 @@ func encodeAuthToken(user, pass string) string {
 }
 
 var (
-	ko = &keepOut{
-		realm: "Mordac the Preventer",
-		user:  "test123",
-		pass:  "test321",
-	}
+	testUser = "test123"
+	testPass = "test321"
 
 	authClient authv3.AuthorizationClient
 )
 
 func startTestServer() {
 	grpcPort := make(chan int)
-	go StartServer("localhost:0", grpcPort)
+	ko := NewKeepOut("Mordac the Preventer", testUser, testPass)
+	go ko.Run("localhost:0", grpcPort)
 
 	portNumber := <-grpcPort
 	conn, err := grpc.Dial(
@@ -63,7 +61,7 @@ func startTestServer() {
 func stopTestServer() {}
 
 func TestGoodToken(t *testing.T) {
-	goodToken := encodeAuthToken(ko.user, ko.pass)
+	goodToken := encodeAuthToken(testUser, testPass)
 
 	ctx := context.Background()
 	resp, err := authClient.Check(ctx, &authv3.CheckRequest{
@@ -103,7 +101,7 @@ func TestBadToken(t *testing.T) {
 	})
 
 	require.NoError(t, err, "check good token error")
-	assert.Equal(t, int32(codes.OK), resp.GetStatus().GetCode(), "valid response")
+	assert.Equal(t, int32(codes.PermissionDenied), resp.GetStatus().GetCode(), "valid response")
 	assert.Equal(t, typev3.StatusCode_Unauthorized, resp.GetDeniedResponse().GetStatus().GetCode(), "failed authentication")
 
 	hdr := resp.GetDeniedResponse().GetHeaders()
