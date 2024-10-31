@@ -79,26 +79,31 @@ func (k *keepOut) Check(
 	log.Print("new request")
 
 	if request == nil {
+		log.Println("request is nil")
 		return k.unauthorizedResponse(), nil
 	}
 
 	attr := request.GetAttributes()
 	if attr == nil {
+		log.Println("attr is nil")
 		return k.unauthorizedResponse(), nil
 	}
 
 	req := attr.GetRequest()
 	if req == nil {
+		log.Println("req is nil")
 		return k.unauthorizedResponse(), nil
 	}
 
 	http := req.GetHttp()
 	if http == nil {
+		log.Println("http is nil")
 		return k.unauthorizedResponse(), nil
 	}
 
 	headers := http.GetHeaders()
 	if headers == nil {
+		log.Println("headers are nil")
 		return k.unauthorizedResponse(), nil
 	}
 
@@ -106,33 +111,48 @@ func (k *keepOut) Check(
 
 	authHeader, ok := headers["authorization"]
 	if !ok {
+		log.Println("no authorization headers")
 		return k.unauthorizedResponse(), nil
 	}
 
-	if !strings.HasPrefix(strings.ToLower(authHeader), "basic ") {
-		return k.unauthorizedResponse(), nil
+	authValues := strings.Split(authHeader, ",")
+	basicAuthValues := make([]string, 0, len(authValues))
+	for _, authValue := range authValues {
+		authValue = strings.TrimSpace(authValue)
+		if strings.HasPrefix(strings.ToLower(authValue), "basic ") {
+			basicAuthValues = append(basicAuthValues, strings.TrimSpace(authValue[5:]))
+		}
+
+		if len(basicAuthValues) == 0 {
+			log.Println("no basic auth present")
+			return k.unauthorizedResponse(), nil
+		}
 	}
 
-	encodedAuth := strings.TrimSpace(authHeader[5:])
+	for _, encodedAuth := range basicAuthValues {
+		auth, err := base64.StdEncoding.DecodeString(encodedAuth)
+		if err != nil {
+			log.Println("failed to decode basic auth base64")
+			return k.unauthorizedResponse(), nil
+		}
 
-	auth, err := base64.StdEncoding.DecodeString(encodedAuth)
-	if err != nil {
-		return k.unauthorizedResponse(), nil
-	}
+		if !bytes.ContainsRune(auth, ':') {
+			log.Println("no colon in basic auth")
+			return k.unauthorizedResponse(), nil
+		}
 
-	if !bytes.ContainsRune(auth, ':') {
-		return k.unauthorizedResponse(), nil
-	}
+		parts := strings.SplitN(string(auth), ":", 2)
+		user, pass := parts[0], parts[1]
 
-	parts := strings.SplitN(string(auth), ":", 2)
-	user, pass := parts[0], parts[1]
+		if user != k.user {
+			log.Printf("user %q does not match %q", user, k.user)
+			return k.unauthorizedResponse(), nil
+		}
 
-	if user != k.user {
-		return k.unauthorizedResponse(), nil
-	}
-
-	if pass != k.pass {
-		return k.unauthorizedResponse(), nil
+		if pass != k.pass {
+			log.Printf("pass %q does not match %q", pass, k.pass)
+			return k.unauthorizedResponse(), nil
+		}
 	}
 
 	// log.Print("pass")
